@@ -179,3 +179,17 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+# mutmut
+mutants/
+.mutmut-cache
+# Claude Code, personal files
+CLAUDE.local.md
+.claude/settings.local.json
+
+# Markdown files
+CLAUDE.md
+/docs/CHECKS.md
+/docs/DECISIONS.md
+/docs/ROADMAP.md
+/docs/WORKFLOW.md
+WORKLOG.md
