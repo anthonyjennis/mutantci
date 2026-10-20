@@ -1,0 +1,67 @@
+name: MutantCI Mutation Gate
+
+on:
+  pull_request:
+    branches: [main, master]
+    types: [opened, synchronize, reopened, edited]
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: "Mutation test suite"
+        required: true
+        type: choice
+        options:
+          - strong
+          - weak
+        default: strong
+
+permissions:
+  contents: read
+
+jobs:
+  mutation-gate:
+    name: Mutation Gate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install fastapi uvicorn pytest pytest-cov mutmut ruff httpx
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Run test suite
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            SUITE="${{ inputs.suite }}"
+          elif [[ "${{ github.event.pull_request.title }}" == "[weak]"* ]]; then
+            SUITE="weak"
+          else
+            SUITE="strong"
+          fi
+
+          echo "Running suite: $SUITE"
+          pytest "tests/$SUITE" --cov=core --cov-report=term-missing
+
+      - name: Run mutation quality gate
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            SUITE="${{ inputs.suite }}"
+          elif [[ "${{ github.event.pull_request.title }}" == "[weak]"* ]]; then
+            SUITE="weak"
+          else
+            SUITE="strong"
+          fi
+
+          python scripts/mutation_gate.py --suite "$SUITE"
