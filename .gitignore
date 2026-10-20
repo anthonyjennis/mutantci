@@ -193,3 +193,18 @@ CLAUDE.md
 /docs/ROADMAP.md
 /docs/WORKFLOW.md
 WORKLOG.md
+# Python cache
+__pycache__/
+*.py[cod]
+.venv/
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Mutation testing cache
+mutants/
+
+# Environment variables
+.env

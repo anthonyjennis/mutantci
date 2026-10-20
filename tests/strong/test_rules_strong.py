@@ -8,7 +8,6 @@ import pytest
 
 from core.rules import discount_percent, gst_percent, shipping_fee
 
-
 # --- shipping_fee: free from 500, otherwise 50 ---------------------------
 
 @pytest.mark.parametrize(
