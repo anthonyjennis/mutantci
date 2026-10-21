@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 # The one command that decides whether work is done.
 # Runs every check in order and stops at the first failure.
