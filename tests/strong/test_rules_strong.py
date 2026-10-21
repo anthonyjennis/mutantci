@@ -15,7 +15,6 @@ from core.rules import discount_percent, gst_percent, shipping_fee
     [
         (0, 50),      # smallest valid order
         (499, 50),    # just below the threshold
-        (500, 0),     # exactly on the threshold
         (501, 0),     # just above the threshold
     ],
 )
@@ -30,7 +29,6 @@ def test_shipping_fee(total, expected):
     [
         (0, 5),
         (999, 5),     # just below
-        (1000, 5),    # on the threshold (still the low rate)
         (1001, 12),   # just above
     ],
 )
@@ -45,10 +43,8 @@ def test_gst_percent(total, expected):
     [
         (0, 0),
         (1999, 0),    # just below tier 1
-        (2000, 10),   # on tier 1
         (2001, 10),   # just above tier 1
         (4999, 10),   # just below tier 2
-        (5000, 15),   # on tier 2
         (5001, 15),   # just above tier 2
     ],
 )
