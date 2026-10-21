@@ -1,0 +1,71 @@
+name: MutantCI Mutation Gate
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: "Mutation test suite"
+        required: true
+        type: choice
+        options:
+          - strong
+          - weak
+        default: strong
+
+permissions:
+  contents: read
+
+jobs:
+  mutation-gate:
+    name: Mutation Gate
+    runs-on: ubuntu-latest
+    env:
+      # Pull requests and pushes always use the strong suite, so the verdict depends only
+      # on the code in the PR. The weak suite can only be chosen by a manual run.
+      # The value goes through an env var, never pasted into a script, which avoids injection.
+      SUITE: ${{ inputs.suite || 'strong' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+
+      - name: Install dependencies (pinned)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Unit tests with 100% coverage
+        run: |
+          echo "Running suite: $SUITE"
+          pytest "tests/$SUITE" --cov=core --cov-report=term-missing --cov-fail-under=100
+
+      - name: API tests
+        run: pytest tests/api -q
+
+      - name: Run mutation quality gate
+        run: python scripts/mutation_gate.py --suite "$SUITE"
+
+      - name: Report surviving mutants
+        if: always()
+        run: |
+          {
+            echo "### Mutation report (suite: $SUITE)"
+            echo '```'
+            mutmut results || echo "no mutation results"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          mutmut results || true
